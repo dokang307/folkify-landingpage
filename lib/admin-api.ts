@@ -107,7 +107,14 @@ export interface LessonAdmin {
   xp: number;
   youtubeUrl: string;
   orderIndex: number;
+  /** Gói tối thiểu để mở bài (gating phía backend). */
+  requiredPlan: Plan;
+  youtubeVideoId: string | null;
+  channelName: string | null;
+  sourceUrl: string | null;
 }
+
+export type Plan = "FREE" | "BASIC" | "PRO";
 
 export const fetchAdminLessons = (instrumentId?: string) =>
   adminRequest<LessonAdmin[]>(`/api/admin/lessons${instrumentId ? `?instrumentId=${instrumentId}` : ""}`);
@@ -129,6 +136,7 @@ export const deleteLesson = (id: string) =>
 
 // ── Songs ──────────────────────────────────────────────────────────────────
 
+/** Tác phẩm — đơn vị để AI chấm phần trình diễn (cần 1 audio mẫu). */
 export interface SongAdmin {
   id: string;
   instrumentId: string;
@@ -137,18 +145,30 @@ export interface SongAdmin {
   artist: string;
   duration: string;
   orderIndex: number;
+  /** Gói tối thiểu để được AI chấm tác phẩm này. */
+  requiredPlan: Plan;
+  scoringReady: boolean;
+  referenceAudioUrl: string | null;
+  referenceDurationSeconds: number | null;
+  sourceUrl: string | null;
+  attribution: string | null;
 }
+
+export type SongInput = Pick<
+  SongAdmin,
+  "instrumentId" | "title" | "artist" | "duration" | "orderIndex" | "requiredPlan" | "sourceUrl" | "attribution"
+>;
 
 export const fetchAdminSongs = (instrumentId?: string) =>
   adminRequest<SongAdmin[]>(`/api/admin/songs${instrumentId ? `?instrumentId=${instrumentId}` : ""}`);
 
-export const createSong = (data: Omit<SongAdmin, "id" | "instrumentName">) =>
+export const createSong = (data: SongInput) =>
   adminRequest<SongAdmin>("/api/admin/songs", {
     method: "POST",
     body: JSON.stringify(data),
   });
 
-export const updateSong = (id: string, data: Omit<SongAdmin, "id" | "instrumentName">) =>
+export const updateSong = (id: string, data: SongInput) =>
   adminRequest<SongAdmin>(`/api/admin/songs/${id}`, {
     method: "PATCH",
     body: JSON.stringify(data),
@@ -225,3 +245,48 @@ export const updateBlogPost = (id: string, data: Omit<BlogPostAdmin, "id" | "pub
 
 export const deleteBlogPost = (id: string) =>
   adminRequest<void>(`/api/admin/blog/${id}`, { method: "DELETE" });
+
+// ── Quiz (câu hỏi ôn tập theo bài học) ─────────────────────────────────────
+
+export type QuestionType = "SINGLE" | "MULTI";
+
+export interface QuizOptionAdmin {
+  id?: string;
+  text: string;
+  correct: boolean;
+}
+
+export interface QuizQuestionAdmin {
+  id?: string;
+  question: string;
+  type: QuestionType;
+  explanation: string | null;
+  options: QuizOptionAdmin[];
+}
+
+export const fetchLessonQuiz = (lessonId: string) =>
+  adminRequest<{ lessonId: string; questions: QuizQuestionAdmin[] }>(`/api/admin/lessons/${lessonId}/quiz`);
+
+/** Thay toàn bộ quiz của bài học (thứ tự trong mảng = thứ tự hiển thị). */
+export const replaceLessonQuiz = (lessonId: string, questions: QuizQuestionAdmin[]) =>
+  adminRequest<{ lessonId: string; questions: QuizQuestionAdmin[] }>(`/api/admin/lessons/${lessonId}/quiz`, {
+    method: "PUT",
+    body: JSON.stringify({
+      questions: questions.map((q) => ({
+        question: q.question,
+        type: q.type,
+        explanation: q.explanation || null,
+        options: q.options.map((o) => ({ text: o.text, correct: o.correct })),
+      })),
+    }),
+  });
+
+/** Upload audio mẫu → backend lưu R2 + AI trích đường cao độ → tác phẩm chấm điểm được. */
+export async function uploadSongReference(id: string, file: File): Promise<SongAdmin> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await authFetch(`${API_URL}/api/admin/songs/${id}/reference`, { method: "POST", body: form });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message ?? "Lỗi upload audio mẫu");
+  return json.result as SongAdmin;
+}

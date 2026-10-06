@@ -11,7 +11,7 @@ const navItems = [
   { label: "Người dùng", href: "/admin/users", icon: Users },
   { label: "Nhạc cụ", href: "/admin/instruments", icon: Music },
   { label: "Bài học", href: "/admin/lessons", icon: BookOpen },
-  { label: "Bài hát", href: "/admin/songs", icon: Music2 },
+  { label: "Tác phẩm", href: "/admin/songs", icon: Music2 },
   { label: "Sheet nhạc", href: "/admin/sheets", icon: FileMusic },
   { label: "Thành tích", href: "/admin/achievements", icon: Award },
   { label: "Blog", href: "/admin/blogs", icon: Newspaper },

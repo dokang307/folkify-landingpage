@@ -1,27 +1,44 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2, X, Check, BookOpen } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Check, BookOpen, ListChecks } from "lucide-react";
 import { toast } from "sonner";
 import {
   fetchAdminInstruments, fetchAdminLessons, createLesson, updateLesson, deleteLesson,
-  type InstrumentAdmin, type LessonAdmin,
+  type InstrumentAdmin, type LessonAdmin, type Plan,
 } from "@/lib/admin-api";
+import QuizEditor from "./QuizEditor";
 
-const LEVELS = ["Cơ bản", "Trung cấp", "Nâng cao"];
+// Giá trị lưu DB là tiếng Anh (web/app nhóm lộ trình theo giá trị này); nhãn hiển thị tiếng Việt
+const LEVELS = [
+  { value: "Beginner", label: "Cơ bản" },
+  { value: "Intermediate", label: "Trung cấp" },
+  { value: "Advanced", label: "Nâng cao" },
+];
+const levelLabel = (v: string) => LEVELS.find((l) => l.value === v)?.label ?? v;
+
+const PLANS: { value: Plan; label: string }[] = [
+  { value: "FREE", label: "Miễn phí" },
+  { value: "BASIC", label: "Basic" },
+  { value: "PRO", label: "Premium" },
+];
 
 const emptyLesson = (): Omit<LessonAdmin, "id" | "instrumentName"> => ({
   instrumentId: "",
   slug: "",
   title: "",
   duration: "",
-  level: "Cơ bản",
+  level: "Beginner",
   description: "",
   steps: [],
   tips: [],
   xp: 10,
   youtubeUrl: "",
   orderIndex: 0,
+  requiredPlan: "FREE",
+  youtubeVideoId: "",
+  channelName: "",
+  sourceUrl: "",
 });
 
 export default function LessonsPage() {
@@ -34,6 +51,7 @@ export default function LessonsPage() {
   const [form, setForm] = useState(emptyLesson());
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [quizLesson, setQuizLesson] = useState<LessonAdmin | null>(null);
 
   useEffect(() => {
     Promise.all([fetchAdminInstruments(), fetchAdminLessons()])
@@ -70,6 +88,10 @@ export default function LessonsPage() {
       xp: l.xp,
       youtubeUrl: l.youtubeUrl,
       orderIndex: l.orderIndex,
+      requiredPlan: l.requiredPlan ?? "FREE",
+      youtubeVideoId: l.youtubeVideoId ?? "",
+      channelName: l.channelName ?? "",
+      sourceUrl: l.sourceUrl ?? "",
     });
     setShowForm(true);
   };
@@ -151,6 +173,7 @@ export default function LessonsPage() {
               <th className="text-left px-5 py-3 text-xs font-semibold text-zinc-400 uppercase tracking-wide">Tên bài học</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-400 uppercase tracking-wide">Nhạc cụ</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-400 uppercase tracking-wide">Cấp độ</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-400 uppercase tracking-wide">Gói</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-400 uppercase tracking-wide">XP</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-400 uppercase tracking-wide">Thứ tự</th>
               <th className="px-4 py-3" />
@@ -159,7 +182,7 @@ export default function LessonsPage() {
           <tbody className="divide-y divide-zinc-50">
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="text-center text-zinc-400 text-sm py-10">Chưa có bài học nào</td>
+                <td colSpan={7} className="text-center text-zinc-400 text-sm py-10">Chưa có bài học nào</td>
               </tr>
             )}
             {filtered.map((l) => (
@@ -175,12 +198,20 @@ export default function LessonsPage() {
                 </td>
                 <td className="px-4 py-3 text-zinc-600">{l.instrumentName}</td>
                 <td className="px-4 py-3">
-                  <span className="text-xs bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded-full">{l.level}</span>
+                  <span className="text-xs bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded-full">{levelLabel(l.level)}</span>
+                </td>
+                <td className="px-4 py-3">
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${l.requiredPlan === "PRO" ? "bg-amber-100 text-amber-700" : l.requiredPlan === "BASIC" ? "bg-emerald-50 text-emerald-700" : "bg-zinc-100 text-zinc-500"}`}>
+                    {PLANS.find((p) => p.value === l.requiredPlan)?.label ?? "Miễn phí"}
+                  </span>
                 </td>
                 <td className="px-4 py-3 text-zinc-600">{l.xp} XP</td>
                 <td className="px-4 py-3 text-zinc-400">{l.orderIndex}</td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2 justify-end">
+                    <button onClick={() => setQuizLesson(l)} title="Câu hỏi ôn tập" className="text-zinc-400 hover:text-[#52b788] transition-colors">
+                      <ListChecks className="w-4 h-4" />
+                    </button>
                     <button onClick={() => openEdit(l)} className="text-zinc-400 hover:text-[#52b788] transition-colors">
                       <Pencil className="w-4 h-4" />
                     </button>
@@ -231,6 +262,9 @@ export default function LessonsPage() {
                 ["Slug *", "slug", "text"],
                 ["Thời lượng", "duration", "text"],
                 ["YouTube URL", "youtubeUrl", "text"],
+                ["YouTube Video ID (11 ký tự)", "youtubeVideoId", "text"],
+                ["Tên kênh YouTube", "channelName", "text"],
+                ["Link nguồn", "sourceUrl", "text"],
               ].map(([label, key, type]) => (
                 <div key={key}>
                   <label className="text-xs font-medium text-zinc-500 block mb-1">{label}</label>
@@ -250,7 +284,18 @@ export default function LessonsPage() {
                   onChange={(e) => setForm((f) => ({ ...f, level: e.target.value }))}
                   className="text-sm border border-zinc-200 rounded-xl px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#52b788]/30"
                 >
-                  {LEVELS.map((l) => <option key={l}>{l}</option>)}
+                  {LEVELS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-zinc-500 block mb-1">Gói tối thiểu để mở bài</label>
+                <select
+                  value={form.requiredPlan}
+                  onChange={(e) => setForm((f) => ({ ...f, requiredPlan: e.target.value as Plan }))}
+                  className="text-sm border border-zinc-200 rounded-xl px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#52b788]/30"
+                >
+                  {PLANS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
                 </select>
               </div>
 
@@ -324,6 +369,10 @@ export default function LessonsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {quizLesson && (
+        <QuizEditor lessonId={quizLesson.id} lessonTitle={quizLesson.title} onClose={() => setQuizLesson(null)} />
       )}
     </div>
   );
