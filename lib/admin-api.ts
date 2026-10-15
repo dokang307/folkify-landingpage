@@ -290,3 +290,54 @@ export async function uploadSongReference(id: string, file: File): Promise<SongA
   if (!res.ok) throw new Error(json.message ?? "Lỗi upload audio mẫu");
   return json.result as SongAdmin;
 }
+
+// ── Revenue & Transactions ────────────────────────────────────────────
+
+export interface AdminRevenue {
+  totalRevenue: number;
+  successCount: number;
+  failedCount: number;
+  cancelledCount: number;
+  pendingCount: number;
+  monthly: { month: string; amount: number; count: number }[];
+}
+
+export interface AdminTransaction {
+  id: string;
+  userName: string;
+  userEmail: string;
+  targetPlan: Plan;
+  amount: number;
+  status: "PENDING" | "SUCCESS" | "CANCELLED" | "FAILED";
+  gatewayReferenceId: string;
+  transactionDate: string;
+  createdAt: string;
+}
+
+export interface PageResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+}
+
+export const fetchRevenueSummary = () =>
+  adminRequest<AdminRevenue>("/api/admin/revenue/summary");
+
+export const fetchTransactions = (params?: {
+  status?: string;
+  plan?: string;
+  page?: number;
+  size?: number;
+}) => {
+  const sp = new URLSearchParams();
+  if (params?.status) sp.set("status", params.status);
+  if (params?.plan) sp.set("plan", params.plan);
+  if (params?.page != null) sp.set("page", String(params.page));
+  if (params?.size != null) sp.set("size", String(params.size));
+  const qs = sp.toString();
+  return adminRequest<PageResponse<AdminTransaction>>(
+    `/api/admin/transactions${qs ? `?${qs}` : ""}`
+  );
+};
