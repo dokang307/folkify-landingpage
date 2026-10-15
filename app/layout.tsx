@@ -22,6 +22,10 @@ export default function RootLayout({
       lang="vi"
       className={`${GeistSans.variable} h-full antialiased`}
     >
+      <head>
+        <link rel="preconnect" href="https://folkify-backend.onrender.com" />
+        <link rel="dns-prefetch" href="https://folkify-backend.onrender.com" />
+      </head>
       <body className="min-h-full flex flex-col">
         {children}
         <Toaster richColors position="top-right" />
