@@ -341,3 +341,34 @@ export const fetchTransactions = (params?: {
     `/api/admin/transactions${qs ? `?${qs}` : ""}`
   );
 };
+
+// ── Ratings ───────────────────────────────────────────────────────────
+
+export interface AdminRating {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  score: number;
+  comment: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RatingSummary {
+  averageScore: number;
+  totalRatings: number;
+  distribution: Record<number, number>;
+}
+
+export const fetchRatingSummary = () =>
+  adminRequest<RatingSummary>("/api/admin/ratings/summary");
+
+export const fetchAdminRatings = (params?: { score?: number; page?: number; size?: number }) => {
+  const sp = new URLSearchParams();
+  if (params?.score != null) sp.set("score", String(params.score));
+  if (params?.page != null) sp.set("page", String(params.page));
+  if (params?.size != null) sp.set("size", String(params.size));
+  const qs = sp.toString();
+  return adminRequest<PageResponse<AdminRating>>(`/api/admin/ratings${qs ? `?${qs}` : ""}`);
+};

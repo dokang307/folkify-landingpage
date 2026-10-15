@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Users, Crown, Zap, UserCheck, TrendingUp, Shield, DollarSign, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Users, Crown, Zap, UserCheck, TrendingUp, Shield, DollarSign, CheckCircle, XCircle, Clock, Star } from "lucide-react";
 import {
-  fetchAdminStats, fetchAdminBlogPosts, fetchRevenueSummary,
-  type AdminStats, type BlogPostAdmin, type AdminRevenue,
+  fetchAdminStats, fetchAdminBlogPosts, fetchRevenueSummary, fetchRatingSummary,
+  type AdminStats, type BlogPostAdmin, type AdminRevenue, type RatingSummary,
 } from "@/lib/admin-api";
 import BlogWeeklyStats from "./BlogWeeklyStats";
 
@@ -16,14 +16,16 @@ export default function AdminOverviewPage() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [posts, setPosts] = useState<BlogPostAdmin[]>([]);
   const [revenue, setRevenue] = useState<AdminRevenue | null>(null);
+  const [ratingSummary, setRatingSummary] = useState<RatingSummary | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([fetchAdminStats(), fetchAdminBlogPosts(), fetchRevenueSummary()])
-      .then(([adminStats, blogPosts, rev]) => {
+    Promise.all([fetchAdminStats(), fetchAdminBlogPosts(), fetchRevenueSummary(), fetchRatingSummary()])
+      .then(([adminStats, blogPosts, rev, ratings]) => {
         setStats(adminStats);
         setPosts(blogPosts);
         setRevenue(rev);
+        setRatingSummary(ratings);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -112,6 +114,38 @@ export default function AdminOverviewPage() {
                 </div>
               )}
             </>
+          )}
+
+          {ratingSummary && (
+            <div className="bg-white rounded-2xl p-6 border border-zinc-100 shadow-sm mb-6">
+              <h2 className="text-lg font-semibold text-[#0a1f14] mb-4">Đánh giá ứng dụng</h2>
+              <div className="flex items-center gap-6">
+                <div>
+                  <p className="text-4xl font-bold text-[#0a1f14]">{ratingSummary.averageScore.toFixed(1)}</p>
+                  <div className="flex gap-0.5 mt-1">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <Star key={n} className={`w-4 h-4 ${n <= Math.round(ratingSummary.averageScore) ? "fill-amber-400 text-amber-400" : "text-zinc-200"}`} />
+                    ))}
+                  </div>
+                  <p className="text-zinc-400 text-sm mt-1">{ratingSummary.totalRatings} đánh giá</p>
+                </div>
+                <div className="flex-1 space-y-1">
+                  {[5, 4, 3, 2, 1].map((n) => {
+                    const count = ratingSummary.distribution[n] ?? 0;
+                    const pct = ratingSummary.totalRatings > 0 ? (count / ratingSummary.totalRatings) * 100 : 0;
+                    return (
+                      <div key={n} className="flex items-center gap-2 text-xs">
+                        <span className="w-6 text-right text-zinc-400">{n}★</span>
+                        <div className="flex-1 h-2 bg-zinc-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-amber-400 rounded-full" style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className="w-8 text-right text-zinc-400 tabular-nums">{count}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
           )}
 
           <BlogWeeklyStats posts={posts} />

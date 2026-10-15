@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Users, Music, BookOpen, Award, LogOut, Shield, Menu, X, Music2, FileMusic, Newspaper, CreditCard } from "lucide-react";
+import { LayoutDashboard, Users, Music, BookOpen, Award, LogOut, Shield, Menu, X, Music2, FileMusic, Newspaper, CreditCard, Star } from "lucide-react";
 import { getSession, clearSession } from "@/lib/auth";
 
 const navItems = [
   { label: "Tổng quan", href: "/admin", icon: LayoutDashboard },
   { label: "Người dùng", href: "/admin/users", icon: Users },
   { label: "Giao dịch", href: "/admin/transactions", icon: CreditCard },
+  { label: "Đánh giá", href: "/admin/ratings", icon: Star },
   { label: "Nhạc cụ", href: "/admin/instruments", icon: Music },
   { label: "Bài học", href: "/admin/lessons", icon: BookOpen },
   { label: "Tác phẩm", href: "/admin/songs", icon: Music2 },
