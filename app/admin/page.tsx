@@ -34,7 +34,7 @@ export default function AdminOverviewPage() {
   const statCards = stats
     ? [
         { label: "Tổng người dùng", value: stats.totalUsers, icon: Users, color: "text-[#52b788]", bg: "bg-[#52b788]/10" },
-        { label: "Mới tuần này", value: stats.newUsersThisWeek, icon: TrendingUp, color: "text-blue-500", bg: "bg-blue-50" },
+        { label: "Người dùng mới tuần này", value: stats.newUsersThisWeek, icon: TrendingUp, color: "text-blue-500", bg: "bg-blue-50" },
         { label: "Gói Basic", value: stats.basicUsers, icon: Zap, color: "text-blue-500", bg: "bg-blue-50" },
         { label: "Gói Pro", value: stats.proUsers, icon: Crown, color: "text-amber-500", bg: "bg-amber-50" },
         { label: "Gói Free", value: stats.freeUsers, icon: UserCheck, color: "text-zinc-400", bg: "bg-zinc-100" },
@@ -45,9 +45,9 @@ export default function AdminOverviewPage() {
   const revenueCards = revenue
     ? [
         { label: "Tổng doanh thu", value: fmtVND(revenue.totalRevenue), icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-50" },
-        { label: "Thành công", value: revenue.successCount, icon: CheckCircle, color: "text-green-500", bg: "bg-green-50" },
-        { label: "Thất bại", value: revenue.failedCount, icon: XCircle, color: "text-red-500", bg: "bg-red-50" },
-        { label: "Đang chờ", value: revenue.pendingCount, icon: Clock, color: "text-yellow-500", bg: "bg-yellow-50" },
+        { label: "Giao dịch thành công", value: revenue.successCount, icon: CheckCircle, color: "text-green-500", bg: "bg-green-50" },
+        { label: "Giao dịch thất bại", value: revenue.failedCount, icon: XCircle, color: "text-red-500", bg: "bg-red-50" },
+        { label: "Giao dịch đang chờ", value: revenue.pendingCount, icon: Clock, color: "text-yellow-500", bg: "bg-yellow-50" },
       ]
     : [];
 
