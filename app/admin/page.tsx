@@ -109,12 +109,7 @@ export default function AdminOverviewPage() {
           </div>
 
           {/* ── GA4 Analytics ── */}
-          {trafficOverview && (
-            <>
-              <h2 className="text-lg font-semibold text-[#0a1f14] mb-4">Lưu lượng truy cập — 7 ngày</h2>
-              <TrafficOverviewCards data={trafficOverview} />
-            </>
-          )}
+          {trafficOverview && <TrafficOverviewCards data={trafficOverview} />}
 
           {dailyUsers && dailyUsers.length > 0 && <DailyUsersChart data={dailyUsers} />}
 

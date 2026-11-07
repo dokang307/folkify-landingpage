@@ -12,41 +12,43 @@ function formatDate(yyyymmdd: string) {
 export function DailyUsersChart({ data }: { data: DailyUsers[] }) {
   if (data.length === 0) return null;
   const max = Math.max(...data.map((d) => d.activeUsers), 1);
-  const h = 160;
-  const w = 100;
-  const stepX = w / Math.max(data.length - 1, 1);
+  const w = 600;
+  const h = 120;
+  const padL = 30;
+  const padR = 10;
+  const padB = 18;
+  const chartW = w - padL - padR;
+  const stepX = chartW / Math.max(data.length - 1, 1);
 
-  const points = data.map((d, i) => `${(i * stepX).toFixed(1)},${(h - (d.activeUsers / max) * h).toFixed(1)}`);
+  const points = data.map((d, i) => `${padL + i * stepX},${(h - (d.activeUsers / max) * h)}`);
   const linePath = `M${points.join("L")}`;
-  const areaPath = `${linePath}L${((data.length - 1) * stepX).toFixed(1)},${h}L0,${h}Z`;
+  const areaPath = `${linePath}L${padL + (data.length - 1) * stepX},${h}L${padL},${h}Z`;
 
-  const tickCount = 5;
+  const tickCount = 6;
   const labelInterval = Math.max(1, Math.floor(data.length / tickCount));
 
   return (
-    <div className="bg-white rounded-2xl p-6 border border-zinc-100 shadow-sm mb-6">
-      <h3 className="text-sm font-medium text-zinc-500 mb-4">Active Users — 30 ngày</h3>
-      <svg viewBox={`0 0 ${w} ${h + 20}`} className="w-full" preserveAspectRatio="none">
+    <div className="bg-white rounded-2xl p-5 border border-zinc-100 shadow-sm mb-6">
+      <h3 className="text-sm font-medium text-zinc-500 mb-3">Người dùng hoạt động — 30 ngày</h3>
+      <svg viewBox={`0 0 ${w} ${h + padB}`} className="w-full" style={{ maxHeight: 180 }}>
         <defs>
           <linearGradient id="auGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#6ee7b7" stopOpacity="0.4" />
+            <stop offset="0%" stopColor="#6ee7b7" stopOpacity="0.3" />
             <stop offset="100%" stopColor="#6ee7b7" stopOpacity="0" />
           </linearGradient>
         </defs>
         <path d={areaPath} fill="url(#auGrad)" />
-        <path d={linePath} fill="none" stroke="#34d399" strokeWidth="0.6" />
+        <path d={linePath} fill="none" stroke="#34d399" strokeWidth="1.5" />
         {data.map((d, i) =>
           i % labelInterval === 0 || i === data.length - 1 ? (
-            <text key={i} x={i * stepX} y={h + 12} textAnchor="middle" className="fill-zinc-400" style={{ fontSize: "3.5px" }}>
+            <text key={i} x={padL + i * stepX} y={h + 14} textAnchor="middle" className="fill-zinc-400" style={{ fontSize: 9 }}>
               {formatDate(d.date)}
             </text>
           ) : null,
         )}
+        <text x={padL - 4} y={10} textAnchor="end" className="fill-zinc-300" style={{ fontSize: 8 }}>{max}</text>
+        <text x={padL - 4} y={h} textAnchor="end" className="fill-zinc-300" style={{ fontSize: 8 }}>0</text>
       </svg>
-      <div className="flex justify-between text-xs text-zinc-400 mt-1">
-        <span>Min: {Math.min(...data.map((d) => d.activeUsers))}</span>
-        <span>Max: {max}</span>
-      </div>
     </div>
   );
 }

@@ -78,6 +78,6 @@ export async function GET(req: NextRequest) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : "GA4 query failed";
     console.error("[analytics]", msg);
-    return fail("Không thể tải dữ liệu phân tích", 502);
+    return fail(msg, 502);
   }
 }

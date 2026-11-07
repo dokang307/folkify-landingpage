@@ -1,4 +1,5 @@
 import { BetaAnalyticsDataClient } from "@google-analytics/data";
+import { GoogleAuth } from "google-auth-library";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -71,9 +72,11 @@ function getClient(): BetaAnalyticsDataClient {
   if (!clientEmail || !privateKey) {
     throw new Error("GA4 credentials not configured");
   }
-  _client = new BetaAnalyticsDataClient({
+  const auth = new GoogleAuth({
     credentials: { client_email: clientEmail, private_key: privateKey },
+    scopes: ["https://www.googleapis.com/auth/analytics.readonly"],
   });
+  _client = new BetaAnalyticsDataClient({ auth });
   return _client;
 }
 
