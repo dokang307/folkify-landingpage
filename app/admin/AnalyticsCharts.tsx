@@ -60,7 +60,7 @@ export function TrafficSourcesTable({ data }: { data: TrafficSource[] }) {
   return (
     <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden">
       <div className="px-4 py-3 border-b border-zinc-50">
-        <h3 className="text-sm font-medium text-zinc-500">Nguồn truy cập</h3>
+        <h3 className="text-sm font-medium text-zinc-500">Nguồn truy cập — 7 ngày</h3>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
@@ -98,7 +98,7 @@ export function DeviceBreakdownBars({ data }: { data: DeviceBreakdown[] }) {
   if (data.length === 0) return null;
   return (
     <div className="bg-white rounded-2xl p-5 border border-zinc-100 shadow-sm">
-      <h3 className="text-sm font-medium text-zinc-500 mb-4">Thiết bị</h3>
+      <h3 className="text-sm font-medium text-zinc-500 mb-4">Thiết bị — 7 ngày</h3>
       <div className="space-y-3">
         {data.map((d) => {
           const Icon = deviceIcons[d.category] ?? Globe;

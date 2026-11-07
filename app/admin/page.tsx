@@ -5,14 +5,14 @@ import { Users, Crown, Zap, UserCheck, TrendingUp, MessageSquare, DollarSign, Ch
 import {
   fetchAdminStats, fetchAdminBlogPosts, fetchRevenueSummary, fetchRatingSummary,
   fetchTrafficOverview, fetchWeeklyAnalytics, fetchTrafficSources, fetchDeviceBreakdown,
-  fetchTopPages, fetchDailyActiveUsers,
+  fetchDailyActiveUsers,
   type AdminStats, type BlogPostAdmin, type AdminRevenue, type RatingSummary,
   type TrafficOverview, type WeeklyAnalytics, type TrafficSource, type DeviceBreakdown,
-  type PagePopularity, type DailyUsers,
+  type DailyUsers,
 } from "@/lib/admin-api";
 import BlogWeeklyStats from "./BlogWeeklyStats";
 import TrafficOverviewCards from "./TrafficOverviewCards";
-import { DailyUsersChart, TrafficSourcesTable, DeviceBreakdownBars, TopPagesTable } from "./AnalyticsCharts";
+import { DailyUsersChart, TrafficSourcesTable, DeviceBreakdownBars } from "./AnalyticsCharts";
 
 function fmtVND(n: number) {
   return new Intl.NumberFormat("vi-VN").format(n) + "đ";
@@ -29,7 +29,6 @@ export default function AdminOverviewPage() {
   const [weeklyAnalytics, setWeeklyAnalytics] = useState<WeeklyAnalytics[] | null>(null);
   const [trafficSources, setTrafficSources] = useState<TrafficSource[] | null>(null);
   const [deviceBreakdown, setDeviceBreakdown] = useState<DeviceBreakdown[] | null>(null);
-  const [topPages, setTopPages] = useState<PagePopularity[] | null>(null);
   const [dailyUsers, setDailyUsers] = useState<DailyUsers[] | null>(null);
 
   useEffect(() => {
@@ -46,16 +45,14 @@ export default function AdminOverviewPage() {
     Promise.allSettled([
       fetchTrafficOverview(),
       fetchWeeklyAnalytics(12),
-      fetchTrafficSources(30),
-      fetchDeviceBreakdown(30),
-      fetchTopPages(30, 10),
+      fetchTrafficSources(7),
+      fetchDeviceBreakdown(7),
       fetchDailyActiveUsers(30),
-    ]).then(([overview, weekly, sources, devices, pages, daily]) => {
+    ]).then(([overview, weekly, sources, devices, daily]) => {
       if (overview.status === "fulfilled") setTrafficOverview(overview.value);
       if (weekly.status === "fulfilled") setWeeklyAnalytics(weekly.value);
       if (sources.status === "fulfilled") setTrafficSources(sources.value);
       if (devices.status === "fulfilled") setDeviceBreakdown(devices.value);
-      if (pages.status === "fulfilled") setTopPages(pages.value);
       if (daily.status === "fulfilled") setDailyUsers(daily.value);
     });
   }, []);
@@ -119,8 +116,6 @@ export default function AdminOverviewPage() {
               {deviceBreakdown && <DeviceBreakdownBars data={deviceBreakdown} />}
             </div>
           )}
-
-          {topPages && <TopPagesTable data={topPages} />}
 
           {/* ── Revenue ── */}
           {revenue && (
