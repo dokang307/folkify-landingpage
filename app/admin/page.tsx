@@ -4,9 +4,15 @@ import { useEffect, useState } from "react";
 import { Users, Crown, Zap, UserCheck, TrendingUp, Shield, DollarSign, CheckCircle, XCircle, Clock, Star } from "lucide-react";
 import {
   fetchAdminStats, fetchAdminBlogPosts, fetchRevenueSummary, fetchRatingSummary,
+  fetchTrafficOverview, fetchWeeklyAnalytics, fetchTrafficSources, fetchDeviceBreakdown,
+  fetchTopPages, fetchDailyActiveUsers,
   type AdminStats, type BlogPostAdmin, type AdminRevenue, type RatingSummary,
+  type TrafficOverview, type WeeklyAnalytics, type TrafficSource, type DeviceBreakdown,
+  type PagePopularity, type DailyUsers,
 } from "@/lib/admin-api";
 import BlogWeeklyStats from "./BlogWeeklyStats";
+import TrafficOverviewCards from "./TrafficOverviewCards";
+import { DailyUsersChart, TrafficSourcesTable, DeviceBreakdownBars, TopPagesTable } from "./AnalyticsCharts";
 
 function fmtVND(n: number) {
   return new Intl.NumberFormat("vi-VN").format(n) + "đ";
@@ -19,6 +25,13 @@ export default function AdminOverviewPage() {
   const [ratingSummary, setRatingSummary] = useState<RatingSummary | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [trafficOverview, setTrafficOverview] = useState<TrafficOverview | null>(null);
+  const [weeklyAnalytics, setWeeklyAnalytics] = useState<WeeklyAnalytics[] | null>(null);
+  const [trafficSources, setTrafficSources] = useState<TrafficSource[] | null>(null);
+  const [deviceBreakdown, setDeviceBreakdown] = useState<DeviceBreakdown[] | null>(null);
+  const [topPages, setTopPages] = useState<PagePopularity[] | null>(null);
+  const [dailyUsers, setDailyUsers] = useState<DailyUsers[] | null>(null);
+
   useEffect(() => {
     Promise.all([fetchAdminStats(), fetchAdminBlogPosts(), fetchRevenueSummary(), fetchRatingSummary()])
       .then(([adminStats, blogPosts, rev, ratings]) => {
@@ -29,6 +42,22 @@ export default function AdminOverviewPage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
+
+    Promise.allSettled([
+      fetchTrafficOverview(),
+      fetchWeeklyAnalytics(12),
+      fetchTrafficSources(30),
+      fetchDeviceBreakdown(30),
+      fetchTopPages(30, 10),
+      fetchDailyActiveUsers(30),
+    ]).then(([overview, weekly, sources, devices, pages, daily]) => {
+      if (overview.status === "fulfilled") setTrafficOverview(overview.value);
+      if (weekly.status === "fulfilled") setWeeklyAnalytics(weekly.value);
+      if (sources.status === "fulfilled") setTrafficSources(sources.value);
+      if (devices.status === "fulfilled") setDeviceBreakdown(devices.value);
+      if (pages.status === "fulfilled") setTopPages(pages.value);
+      if (daily.status === "fulfilled") setDailyUsers(daily.value);
+    });
   }, []);
 
   const statCards = stats
@@ -76,6 +105,26 @@ export default function AdminOverviewPage() {
             ))}
           </div>
 
+          {/* ── GA4 Analytics ── */}
+          {trafficOverview && (
+            <>
+              <h2 className="text-lg font-semibold text-[#0a1f14] mb-4">Lưu lượng truy cập — 7 ngày</h2>
+              <TrafficOverviewCards data={trafficOverview} />
+            </>
+          )}
+
+          {dailyUsers && dailyUsers.length > 0 && <DailyUsersChart data={dailyUsers} />}
+
+          {(trafficSources || deviceBreakdown) && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+              {trafficSources && <TrafficSourcesTable data={trafficSources} />}
+              {deviceBreakdown && <DeviceBreakdownBars data={deviceBreakdown} />}
+            </div>
+          )}
+
+          {topPages && <TopPagesTable data={topPages} />}
+
+          {/* ── Revenue ── */}
           {revenue && (
             <>
               <h2 className="text-lg font-semibold text-[#0a1f14] mb-4">Doanh thu</h2>
@@ -148,7 +197,7 @@ export default function AdminOverviewPage() {
             </div>
           )}
 
-          <BlogWeeklyStats posts={posts} />
+          <BlogWeeklyStats posts={posts} analyticsData={weeklyAnalytics} />
         </>
       )}
     </div>

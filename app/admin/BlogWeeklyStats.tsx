@@ -2,20 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import type { BlogPostAdmin } from "@/lib/admin-api";
+import type { BlogPostAdmin, WeeklyAnalytics } from "@/lib/admin-api";
 
 const PAGE_SIZE = 10;
 
 const TH_CLASS =
   "text-left px-3 py-3 text-xs font-semibold text-zinc-400 uppercase tracking-wide whitespace-nowrap";
-
-/**
- * Số liệu demo cho 4 cột chưa có nguồn thật.
- *
- * ĐỔI THÀNH `false` NGAY KHI NỐI ĐƯỢC GA4 DATA API — lúc đó 4 cột quay về "—"
- * cho tới khi thay bằng số thật, thay vì âm thầm hiển thị số bịa.
- */
-const DEMO_ANALYTICS = true;
 
 const ANALYTICS_COLUMNS = [
   "Website Sessions",
@@ -24,46 +16,26 @@ const ANALYTICS_COLUMNS = [
   "Average Engagement Time",
 ] as const;
 
-type DemoRow = Record<(typeof ANALYTICS_COLUMNS)[number], string>;
+function fmtDuration(seconds: number): string {
+  if (seconds <= 0) return "—";
+  const m = Math.floor(seconds / 60);
+  const s = Math.round(seconds % 60);
+  return m > 0 ? `${m}m ${String(s).padStart(2, "0")}s` : `${s}s`;
+}
 
-/**
- * Số liệu demo cố định, xếp từ tuần cũ nhất tới tuần mới nhất.
- * Cột Blog Posts KHÔNG nằm ở đây — cột đó luôn đếm thật từ database.
- */
-const DEMO_WEEKS: DemoRow[] = [
-  {
-    "Website Sessions": "88",
-    "Blog Pageviews": "126",
-    "App Store CTA Clicks": "14",
-    "Average Engagement Time": "1m 31s",
-  },
-  {
-    "Website Sessions": "116",
-    "Blog Pageviews": "173",
-    "App Store CTA Clicks": "21",
-    "Average Engagement Time": "1m 44s",
-  },
-  {
-    "Website Sessions": "148",
-    "Blog Pageviews": "224",
-    "App Store CTA Clicks": "28",
-    "Average Engagement Time": "2m 02s",
-  },
-  {
-    "Website Sessions": "121",
-    "Blog Pageviews": "181",
-    "App Store CTA Clicks": "23",
-    "Average Engagement Time": "1m 56s",
-  },
-];
+type AnalyticsRow = Record<(typeof ANALYTICS_COLUMNS)[number], string>;
 
-/**
- * `weeksAgo` = 0 là tuần hiện tại. Neo phần tử cuối của DEMO_WEEKS vào tuần mới
- * nhất rồi lùi dần; quá 4 tuần thì lặp lại chu kỳ để bảng không bị trống.
- */
-function demoMetrics(weeksAgo: number): DemoRow {
-  const offset = weeksAgo % DEMO_WEEKS.length;
-  return DEMO_WEEKS[DEMO_WEEKS.length - 1 - offset];
+function matchAnalytics(weekStart: Date, analytics: WeeklyAnalytics[] | null | undefined): AnalyticsRow | null {
+  if (!analytics) return null;
+  const key = weekStart.toISOString().slice(0, 10);
+  const match = analytics.find((a) => a.weekStart === key);
+  if (!match) return null;
+  return {
+    "Website Sessions": String(match.sessions),
+    "Blog Pageviews": String(match.blogPageviews),
+    "App Store CTA Clicks": String(match.ctaClicks),
+    "Average Engagement Time": fmtDuration(match.avgEngagementTime),
+  };
 }
 
 /** dd/MM — không dùng Intl vì locale vi-VN trả về "29-12", lẫn với dấu nối khoảng tuần. */
@@ -87,7 +59,7 @@ function weekLabel(monday: Date) {
   return `${dayMonth(monday)} – ${dayMonth(sunday)}/${String(sunday.getFullYear()).slice(2)}`;
 }
 
-export default function BlogWeeklyStats({ posts }: { posts: BlogPostAdmin[] }) {
+export default function BlogWeeklyStats({ posts, analyticsData }: { posts: BlogPostAdmin[]; analyticsData?: WeeklyAnalytics[] | null }) {
   const [page, setPage] = useState(1);
 
   // Chỉ tính bài đã đăng — bài nháp chưa có publishedAt nên không thuộc tuần nào.
@@ -153,9 +125,8 @@ export default function BlogWeeklyStats({ posts }: { posts: BlogPostAdmin[] }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-50">
-                {paged.map((week, index) => {
-                  // `weeks` xếp mới nhất trước, nên vị trí trong mảng chính là số tuần lùi về.
-                  const metrics = DEMO_ANALYTICS ? demoMetrics(startIndex + index) : null;
+                {paged.map((week) => {
+                  const metrics = matchAnalytics(week.start, analyticsData);
 
                   return (
                     <tr key={week.start.getTime()} className="hover:bg-zinc-50/50 transition-colors">

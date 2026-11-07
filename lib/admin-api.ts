@@ -28,6 +28,33 @@ async function adminRequest<T>(path: string, options?: RequestInit): Promise<T> 
   return json.result as T;
 }
 
+// ── Analytics (GA4 Data API via Next.js route handler) ────────────────────
+
+import type {
+  TrafficOverview, WeeklyAnalytics, TrafficSource,
+  DeviceBreakdown, PagePopularity, DailyUsers,
+} from "./ga4-client";
+
+export type {
+  TrafficOverview, WeeklyAnalytics, TrafficSource,
+  DeviceBreakdown, PagePopularity, DailyUsers,
+};
+
+async function analyticsRequest<T>(type: string, params?: Record<string, string>): Promise<T> {
+  const sp = new URLSearchParams({ type, ...params });
+  const res = await authFetch(`/api/admin/analytics?${sp}`);
+  const json = await res.json();
+  if (!res.ok || !json.ok) throw new Error(json.error ?? "Analytics unavailable");
+  return json.data as T;
+}
+
+export const fetchTrafficOverview = () => analyticsRequest<TrafficOverview>("overview");
+export const fetchWeeklyAnalytics = (weeks = 12) => analyticsRequest<WeeklyAnalytics[]>("weekly", { weeks: String(weeks) });
+export const fetchTrafficSources = (days = 30) => analyticsRequest<TrafficSource[]>("sources", { days: String(days) });
+export const fetchDeviceBreakdown = (days = 30) => analyticsRequest<DeviceBreakdown[]>("devices", { days: String(days) });
+export const fetchTopPages = (days = 30, limit = 10) => analyticsRequest<PagePopularity[]>("pages", { days: String(days), limit: String(limit) });
+export const fetchDailyActiveUsers = (days = 30) => analyticsRequest<DailyUsers[]>("daily-users", { days: String(days) });
+
 // ── Users ──────────────────────────────────────────────────────────────────
 
 export interface AdminStats {
