@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Users, Crown, Zap, UserCheck, TrendingUp, Shield, DollarSign, CheckCircle, XCircle, Clock, Star } from "lucide-react";
+import { Users, Crown, Zap, UserCheck, TrendingUp, MessageSquare, DollarSign, CheckCircle, XCircle, Clock, Star } from "lucide-react";
 import {
   fetchAdminStats, fetchAdminBlogPosts, fetchRevenueSummary, fetchRatingSummary,
   fetchTrafficOverview, fetchWeeklyAnalytics, fetchTrafficSources, fetchDeviceBreakdown,
@@ -60,14 +60,16 @@ export default function AdminOverviewPage() {
     });
   }, []);
 
+  const paidUsers = stats ? stats.basicUsers + stats.proUsers : 0;
+
   const statCards = stats
     ? [
-        { label: "Tổng người dùng", value: stats.totalUsers, icon: Users, color: "text-[#52b788]", bg: "bg-[#52b788]/10" },
+        { label: "Tổng người dùng", value: stats.totalUsers, sub: `${paidUsers} trả phí`, icon: Users, color: "text-[#52b788]", bg: "bg-[#52b788]/10" },
         { label: "Người dùng mới tuần này", value: stats.newUsersThisWeek, icon: TrendingUp, color: "text-blue-500", bg: "bg-blue-50" },
         { label: "Gói Basic", value: stats.basicUsers, icon: Zap, color: "text-blue-500", bg: "bg-blue-50" },
         { label: "Gói Pro", value: stats.proUsers, icon: Crown, color: "text-amber-500", bg: "bg-amber-50" },
         { label: "Gói Free", value: stats.freeUsers, icon: UserCheck, color: "text-zinc-400", bg: "bg-zinc-100" },
-        { label: "Admins", value: stats.totalAdmins, icon: Shield, color: "text-red-400", bg: "bg-red-50" },
+        { label: "Tổng đánh giá", value: ratingSummary?.totalRatings ?? 0, sub: ratingSummary ? `${ratingSummary.averageScore.toFixed(1)} ★` : undefined, icon: MessageSquare, color: "text-amber-500", bg: "bg-amber-50" },
       ]
     : [];
 
@@ -101,6 +103,7 @@ export default function AdminOverviewPage() {
                 </div>
                 <p className="text-3xl font-bold text-[#0a1f14]">{s.value}</p>
                 <p className="text-zinc-400 text-sm mt-1">{s.label}</p>
+                {s.sub && <p className="text-xs text-zinc-400 mt-0.5">{s.sub}</p>}
               </div>
             ))}
           </div>
