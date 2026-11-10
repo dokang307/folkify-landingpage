@@ -37,9 +37,9 @@ export default function PrivacyPage() {
                 huy hiệu và thống kê học tập.
               </li>
               <li>
-                <strong>Thông tin thanh toán:</strong> giao dịch mua trong ứng dụng được xử lý
-                hoàn toàn bởi Apple App Store hoặc Google Play. Chúng tôi không lưu trữ thông
-                tin thẻ tín dụng hay tài khoản ngân hàng.
+                <strong>Thông tin thanh toán:</strong> giao dịch đăng ký gói được xử lý qua cổng
+                thanh toán PayOS bằng chuyển khoản ngân hàng hoặc quét mã QR. Chúng tôi không
+                lưu trữ thông tin tài khoản ngân hàng của bạn.
               </li>
               <li>
                 <strong>Dữ liệu kỹ thuật:</strong> loại thiết bị, phiên bản hệ điều hành, nhật
@@ -73,12 +73,12 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-white mb-3">5. Đăng ký tự động gia hạn (Auto-Renewable Subscription)</h2>
+            <h2 className="text-xl font-semibold text-white mb-3">5. Gói đăng ký trả phí</h2>
             <p>
-              Folkify cung cấp gói đăng ký trả phí theo tháng (Basic và Pro). Đăng ký tự động
-              gia hạn trừ khi bạn hủy trước 24 giờ khi hết kỳ hiện tại. Bạn có thể quản lý hoặc
-              hủy đăng ký trong mục <strong>Cài đặt &gt; Apple ID &gt; Đăng ký</strong> trên
-              iPhone, hoặc Google Play &gt; Đăng ký trên Android.
+              Folkify cung cấp gói đăng ký trả phí theo tháng (Basic và Pro). Gói có hiệu lực
+              30 ngày kể từ ngày thanh toán thành công. Sau khi hết hạn, tài khoản sẽ tự động
+              chuyển về gói Free nếu không gia hạn. Bạn có thể gia hạn bất kỳ lúc nào trong
+              ứng dụng hoặc trên trang web.
             </p>
           </section>
 

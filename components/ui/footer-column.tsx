@@ -27,9 +27,9 @@ const data = {
     press: "#",
   },
   help: {
-    support: "#",
-    privacy: "#",
-    terms: "#",
+    support: "mailto:support@folkify.vn",
+    privacy: "/privacy",
+    terms: "/terms",
     appstore: APP_STORE_URL,
   },
   contact: {
